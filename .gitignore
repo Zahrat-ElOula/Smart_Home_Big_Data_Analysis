@@ -20,3 +20,4 @@ data/processed/
 .DS_Store
 Thumbs.db
 *.csv
+human_activity_raw_sensor_data/*.csv
