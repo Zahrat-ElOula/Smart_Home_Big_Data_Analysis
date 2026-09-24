@@ -1,0 +1,4 @@
+﻿filename,path,size_bytes,size_gb,header
+sensor.csv,C:\Users\zahra\OneDrive\Desktop\BigData\human_activity_raw_sensor_data\sensor.csv,1684,2e-06,"sensor_id,node_id,type,name"
+sensor_sample_int.csv,C:\Users\zahra\OneDrive\Desktop\BigData\human_activity_raw_sensor_data\sensor_sample_int.csv,9819603551,9.145218,"value_id,sensor_id,timestamp,value"
+sensor_sample_float.csv,C:\Users\zahra\OneDrive\Desktop\BigData\human_activity_raw_sensor_data\sensor_sample_float.csv,3506602607,3.265778,"value_id,sensor_id,timestamp,value"

@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Spark / Java
+spark-warehouse/
+metastore_db/
+derby.log
+
+# Generated data
+outputs/eda/_spark_*/
+outputs/eda/sample_*/
+data/processed/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
