@@ -184,7 +184,55 @@ def build_inventory(files: dict[str, Path], output_dir: Path) -> list[dict[str, 
     return inventory
 
 
+def ensure_java_home() -> Path:
+    """Configure automatiquement un JDK 17+ déjà présent sur le poste Windows."""
+    configured = os.environ.get("JAVA_HOME")
+    if configured:
+        java_home = Path(configured).expanduser()
+        if (java_home / "bin" / "java.exe").is_file():
+            return java_home
+
+    program_files = Path(os.environ.get("ProgramFiles", r"C:\Program Files"))
+    candidates: list[Path] = [
+        program_files
+        / "Neo4j Desktop 2"
+        / "resources"
+        / "offline"
+        / "runtime"
+        / "zulu17.60.17-ca-jdk17.0.16-win_x64",
+    ]
+    search_roots = [
+        program_files / "Eclipse Adoptium",
+        program_files / "Java",
+        program_files / "Microsoft",
+        Path.home() / ".jdks",
+    ]
+    for root in search_roots:
+        if not root.is_dir():
+            continue
+        candidates.extend(sorted(root.glob("jdk-17*"), reverse=True))
+        candidates.extend(sorted(root.glob("temurin-17*"), reverse=True))
+        candidates.extend(sorted(root.glob("zulu17*"), reverse=True))
+
+    for candidate in candidates:
+        if (candidate / "bin" / "java.exe").is_file():
+            os.environ["JAVA_HOME"] = str(candidate)
+            os.environ["Path"] = (
+                str(candidate / "bin")
+                + os.pathsep
+                + os.environ.get("Path", "")
+            )
+            log(f"JAVA_HOME détecté automatiquement : {candidate}")
+            return candidate
+
+    raise RuntimeError(
+        "Java 17 ou supérieur est requis par Spark. Installe un JDK 17+ et "
+        "configure JAVA_HOME avant de relancer le script."
+    )
+
+
 def create_spark(args: argparse.Namespace, output_dir: Path) -> SparkSession:
+    ensure_java_home()
     # Évite que le nom Windows contenant « _ » soit utilisé comme URL RPC Spark.
     os.environ.setdefault("SPARK_LOCAL_HOSTNAME", "127.0.0.1")
     scratch_dir = (

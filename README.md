@@ -15,7 +15,6 @@ BigData/
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
-├── run_eda.ps1
 └── README.md
 ```
 
@@ -48,23 +47,11 @@ py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Si `JAVA_HOME` n'est pas configuré, définir une installation Java 17 avant l'exécution.
+Le script recherche automatiquement une installation Java 17+ sur Windows. Si aucune installation n'est détectée, définir `JAVA_HOME`.
 
 ## Exécution complète
 
-Après avoir créé `.venv` et installé les dépendances, le lanceur Windows peut être utilisé :
-
-```powershell
-.\run_eda.ps1
-```
-
-Si la stratégie d'exécution PowerShell bloque le script :
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\run_eda.ps1
-```
-
-La commande équivalente sans le lanceur est :
+Après avoir créé `.venv` et installé les dépendances :
 
 ```powershell
 .\.venv\Scripts\python.exe src\phase1_eda.py `
