@@ -1,7 +1,7 @@
 {
   "phase": "phase1_eda",
-  "started_at_utc": "2026-09-24T20:14:20.519878+00:00",
-  "completed_at_utc": "2026-09-24T20:21:11.007305+00:00",
+  "started_at_utc": "2026-09-24T20:10:19.915734+00:00",
+  "completed_at_utc": "2026-09-24T20:33:38.597950+00:00",
   "data_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\human_activity_raw_sensor_data",
   "output_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\eda_test",
   "master": "local[4]",

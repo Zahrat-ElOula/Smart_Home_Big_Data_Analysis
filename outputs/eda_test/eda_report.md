@@ -1,15 +1,15 @@
 # Rapport EDA — Smart Home
 
-Généré le 2026-09-24 20:21:11+00:00 UTC.
+Généré le 2026-09-24 20:33:38+00:00 UTC.
 
 ## 1. Démarche
 
-1. Lire `sensor.csv` pour obtenir les déclarations des capteurs et leur|type de mesure.
+1. Lire `sensor.csv` pour obtenir les déclarations des capteurs et leur type de mesure.
 2. Lire les deux fichiers de mesures avec un schéma Spark explicite.
 3. Uniformiser les types, convertir les timestamps et conserver les enregistrements invalides comme métriques de qualité.
-4. Calculer les volumes, périodes,min/max, moyennes et contrôles de qualité.
+4. Calculer les volumes, périodes, min/max, moyennes et contrôles de qualité.
 5. Joindre les mesures aux métadonnées sur `sensor_id`.
-6. Construire un échantillon aléatoire sans remise de **0.2000%**, soit **495,890 lignes** (seed `42`), puis conserver pour les profils temporelles uniquement les événements à timestamp et valeur finis, dont le capteur est déclaré.
+6. Construire un échantillon aléatoire sans remise de **0.2000%**, soit **495,890 lignes** (seed `42`), puis conserver pour les profils temporels uniquement les événements à timestamp et valeur finis, dont le capteur est déclaré.
 7. Produire des tableaux CSV, des graphiques et une synthèse Markdown.
 
 Les volumes, périodes, min/max, valeurs manquantes et l'intégrité `sensor_id` sont calculés sur **toutes les lignes**. Les quantiles et les profils temporels sont calculés sur l'échantillon afin de limiter les recomputations et la sortie sur le driver.
