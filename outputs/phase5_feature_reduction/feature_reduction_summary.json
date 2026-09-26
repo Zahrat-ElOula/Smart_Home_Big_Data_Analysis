@@ -1,0 +1,27 @@
+{
+  "phase": "phase5_step2_feature_reduction",
+  "started_at_utc": "2026-09-26T21:13:03.979152+00:00",
+  "completed_at_utc": "2026-09-26T21:13:20.212385+00:00",
+  "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min\\window_features_wide",
+  "selection_file": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\phase5_sensor_selection\\stable_sensor_selection.csv",
+  "output_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min\\window_features_reduced",
+  "input_column_count": 224,
+  "input_model_feature_count": 175,
+  "selected_sensor_count": 8,
+  "retained_suffixes": [
+    "sample_count",
+    "mean_value",
+    "max_value",
+    "positive_value_count",
+    "zero_value_count"
+  ],
+  "dropped_suffixes": [
+    "min_value",
+    "last_value"
+  ],
+  "reduced_model_feature_count": 47,
+  "removed_model_feature_count": 128,
+  "reduction_ratio": 0.731429,
+  "reduced_row_count": 50220,
+  "reduced_column_count": 51
+}

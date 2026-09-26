@@ -15,7 +15,8 @@ BigData/
 │   ├── phase2_cleaning.py
 │   ├── phase3_features.py
 │   ├── phase4_clustering.py
-│   └── phase5_sensor_selection.py
+│   ├── phase5_sensor_selection.py
+│   └── phase5_feature_reduction.py
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
@@ -176,6 +177,28 @@ outputs/phase5_sensor_selection/sensor_selection_report.md
 ```
 
 Cette étape ne modifie pas encore le modèle de clustering. Elle prépare uniquement la liste des capteurs stables.
+
+## Phase 5 — Étape 2 : réduction des variables
+
+Cette étape utilise les 8 capteurs stables et conserve 5 statistiques par capteur :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase5_feature_reduction.py `
+  --master "local[4]" `
+  --shuffle-partitions 16 `
+  --scratch-dir "C:\Users\zahra\AppData\Local\Temp\opencode\phase5_reduction"
+```
+
+Sorties :
+
+```text
+data/processed/features_5min/window_features_reduced/
+outputs/phase5_feature_reduction/feature_reduction_report.md
+outputs/phase5_feature_reduction/reduced_feature_dictionary.csv
+outputs/phase5_feature_reduction/feature_reduction_summary.json
+```
+
+Le clustering n'est pas encore réentraîné à cette étape.
 
 ## Principaux résultats
 
