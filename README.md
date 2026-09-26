@@ -11,7 +11,8 @@ BigData/
 │   ├── sensor_sample_int.csv
 │   └── sensor_sample_float.csv
 ├── src/
-│   └── phase1_eda.py
+│   ├── phase1_eda.py
+│   └── phase2_cleaning.py
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
@@ -81,6 +82,26 @@ Un répertoire de travail Spark peut être choisi explicitement, par exemple sur
 ```
 
 Cette première version accepte uniquement un master `local[...]`, car elle lit des fichiers présents sur le poste.
+
+## Phase 2 — Nettoyage léger
+
+Après l'EDA, le script suivant normalise les mesures, les associe aux capteurs et les écrit en Parquet :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase2_cleaning.py --master "local[4]" --shuffle-partitions 16
+```
+
+Sorties :
+
+```text
+data/processed/measurements_clean/
+outputs/phase2_cleaning/cleaning_report.md
+outputs/phase2_cleaning/cleaning_summary.json
+```
+
+Les zéros sont conservés car ils représentent un état normal. Les courants négatifs sont conservés mais signalés par `is_suspect_value`. Le dédoublonnage exact est désactivé par défaut, car il serait coûteux sur 247 millions de lignes.
+
+Sous Windows, l'écriture Parquet nécessite `winutils.exe` et `hadoop.dll`. Le script détecte une installation locale ; sinon, utilisez `--hadoop-home` avec un dossier contenant `bin/winutils.exe` et `bin/hadoop.dll`.
 
 ## Principaux résultats
 

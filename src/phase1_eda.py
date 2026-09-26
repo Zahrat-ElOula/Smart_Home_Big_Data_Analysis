@@ -184,7 +184,7 @@ def build_inventory(files: dict[str, Path], output_dir: Path) -> list[dict[str, 
     return inventory
 
 
-def ensure_java_home() -> Path:
+def ensure_java_home(log_prefix: str = "EDA") -> Path:
     """Configure automatiquement un JDK 17+ déjà présent sur le poste Windows."""
     configured = os.environ.get("JAVA_HOME")
     if configured:
@@ -222,7 +222,10 @@ def ensure_java_home() -> Path:
                 + os.pathsep
                 + os.environ.get("Path", "")
             )
-            log(f"JAVA_HOME détecté automatiquement : {candidate}")
+            print(
+                f"[{log_prefix}] JAVA_HOME détecté automatiquement : {candidate}",
+                flush=True,
+            )
             return candidate
 
     raise RuntimeError(
