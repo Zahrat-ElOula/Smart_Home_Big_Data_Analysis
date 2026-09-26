@@ -57,6 +57,17 @@ Les features les plus différenciantes de chaque cluster sont détaillées dans 
 - Les deux clusters sont assez équilibrés, mais leur différence principale semble aussi liée au nombre de capteurs actifs et au volume de mesures.
 - Le cluster doit donc être décrit comme un profil de mesures, et non comme une activité humaine certaine.
 
+## Graphiques
+
+Les graphiques d'interprétation se trouvent dans `C:\Users\zahra\OneDrive\Desktop\BigData\outputs\phase4_clustering\charts` :
+
+- `silhouette_by_k.png`
+- `cluster_sizes.png`
+- `cluster_context.png`
+- `cluster_differentiating_features.png`
+- `cluster_distribution_by_hour.png`
+- `cluster_distribution_by_day.png`
+
 ## Modèle et sorties
 
 - Modèle de preprocessing : `C:\Users\zahra\OneDrive\Desktop\BigData\models\phase4_kmeans\preprocessing`

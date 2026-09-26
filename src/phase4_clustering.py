@@ -19,6 +19,7 @@ import argparse
 import csv
 import json
 import os
+import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -356,6 +357,185 @@ def write_csv(rows: list[dict[str, Any]], path: Path, fields: list[str]) -> None
         writer.writerows(rows)
 
 
+def create_charts(
+    report_dir: Path,
+    metrics: list[dict[str, Any]],
+    profiles: list[dict[str, Any]],
+    predictions: DataFrame,
+) -> list[str]:
+    """Crée les graphiques de sélection et d'interprétation du clustering."""
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        log(f"Graphiques ignorés : matplotlib absent ({exc}).")
+        return []
+
+    chart_dir = report_dir / "charts"
+    chart_dir.mkdir(parents=True, exist_ok=True)
+    charts: list[str] = []
+    plt.rcParams.update({"figure.figsize": (10, 5), "axes.titlesize": 13})
+
+    valid_metrics = [row for row in metrics if row["silhouette"] is not None]
+    if valid_metrics:
+        ks = [row["k"] for row in valid_metrics]
+        scores = [row["silhouette"] for row in valid_metrics]
+        best_index = max(range(len(scores)), key=lambda index: scores[index])
+        fig, ax = plt.subplots()
+        ax.plot(ks, scores, marker="o", color="#2563eb", linewidth=2)
+        ax.scatter([ks[best_index]], [scores[best_index]], color="#dc2626", s=70, zorder=3)
+        ax.set(
+            title="Silhouette selon le nombre de clusters",
+            xlabel="Nombre de clusters (k)",
+            ylabel="Score de silhouette",
+        )
+        ax.set_xticks(ks)
+        fig.tight_layout()
+        path = chart_dir / "silhouette_by_k.png"
+        fig.savefig(path, dpi=160)
+        plt.close(fig)
+        charts.append(str(path))
+
+    if profiles:
+        clusters = [row["cluster"] for row in profiles]
+        counts = [row["window_count"] for row in profiles]
+        fig, ax = plt.subplots()
+        bars = ax.bar([f"Cluster {cluster}" for cluster in clusters], counts, color="#7c3aed")
+        ax.set(title="Nombre de fenêtres par cluster", ylabel="Nombre de fenêtres")
+        for bar, count in zip(bars, counts):
+            ax.text(bar.get_x() + bar.get_width() / 2, count, f"{count:,}", ha="center", va="bottom")
+        fig.tight_layout()
+        path = chart_dir / "cluster_sizes.png"
+        fig.savefig(path, dpi=160)
+        plt.close(fig)
+        charts.append(str(path))
+
+        fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+        for ax, field, title in zip(
+            axes,
+            (
+                "active_sensor_count_mean",
+                "total_sample_count_mean",
+                "hour_mean",
+            ),
+            ("Capteurs actifs moyens", "Mesures moyennes", "Heure moyenne"),
+        ):
+            values = [row[field] for row in profiles]
+            ax.bar([f"C{cluster}" for cluster in clusters], values, color="#0f766e")
+            ax.set(title=title)
+            ax.tick_params(axis="x", rotation=0)
+        fig.suptitle("Caractéristiques moyennes des clusters")
+        fig.tight_layout()
+        path = chart_dir / "cluster_context.png"
+        fig.savefig(path, dpi=160)
+        plt.close(fig)
+        charts.append(str(path))
+
+        parsed_features: list[tuple[int, list[tuple[str, float]]]] = []
+        pattern = re.compile(r"^(.*)\s+\(([+-]?[0-9.]+)\)$")
+        for profile in profiles:
+            entries: list[tuple[str, float]] = []
+            for item in str(profile["top_differentiating_features"]).split(";"):
+                match = pattern.match(item.strip())
+                if match:
+                    entries.append((match.group(1), float(match.group(2))))
+            parsed_features.append((int(profile["cluster"]), entries[:8]))
+        if any(entries for _, entries in parsed_features):
+            fig, ax = plt.subplots(figsize=(12, max(5, 1.4 * len(parsed_features) * 8)))
+            y_position = 0
+            labels: list[str] = []
+            colors = plt.cm.tab10.colors
+            for index, (cluster, entries) in enumerate(parsed_features):
+                for name, value in entries:
+                    ax.barh(y_position, value, color=colors[index % len(colors)])
+                    labels.append(f"C{cluster} | {name}")
+                    y_position += 1
+            ax.set_yticks(range(len(labels)))
+            ax.set_yticklabels(labels, fontsize=8)
+            ax.axvline(0, color="black", linewidth=0.8)
+            ax.set(
+                title="Features les plus différenciantes par cluster",
+                xlabel="Écart standardisé moyen par rapport au centre global",
+            )
+            fig.tight_layout()
+            path = chart_dir / "cluster_differentiating_features.png"
+            fig.savefig(path, dpi=160)
+            plt.close(fig)
+            charts.append(str(path))
+
+    hour_rows = predictions.groupBy("cluster", "hour").count().collect()
+    if hour_rows:
+        clusters = sorted({int(row["cluster"]) for row in hour_rows})
+        hours = list(range(24))
+        matrix = [
+            [
+                next(
+                    (int(row["count"]) for row in hour_rows if int(row["cluster"]) == cluster and int(row["hour"]) == hour),
+                    0,
+                )
+                for hour in hours
+            ]
+            for cluster in clusters
+        ]
+        fig, ax = plt.subplots()
+        bottom = [0] * 24
+        for index, cluster in enumerate(clusters):
+            values = matrix[index]
+            ax.bar(hours, values, bottom=bottom, label=f"Cluster {cluster}")
+            bottom = [left + right for left, right in zip(bottom, values)]
+        ax.set(
+            title="Répartition des clusters selon l'heure",
+            xlabel="Heure",
+            ylabel="Nombre de fenêtres",
+        )
+        ax.set_xticks(hours)
+        ax.legend()
+        fig.tight_layout()
+        path = chart_dir / "cluster_distribution_by_hour.png"
+        fig.savefig(path, dpi=160)
+        plt.close(fig)
+        charts.append(str(path))
+
+    day_rows = predictions.groupBy("cluster", "day_of_week").count().collect()
+    if day_rows:
+        clusters = sorted({int(row["cluster"]) for row in day_rows})
+        days = list(range(1, 8))
+        day_names = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"]
+        matrix = [
+            [
+                next(
+                    (int(row["count"]) for row in day_rows if int(row["cluster"]) == cluster and int(row["day_of_week"]) == day),
+                    0,
+                )
+                for day in days
+            ]
+            for cluster in clusters
+        ]
+        fig, ax = plt.subplots()
+        bottom = [0] * 7
+        for index, cluster in enumerate(clusters):
+            values = matrix[index]
+            ax.bar(days, values, bottom=bottom, label=f"Cluster {cluster}")
+            bottom = [left + right for left, right in zip(bottom, values)]
+        ax.set(
+            title="Répartition des clusters selon le jour de la semaine",
+            xlabel="Jour",
+            ylabel="Nombre de fenêtres",
+        )
+        ax.set_xticks(days)
+        ax.set_xticklabels(day_names, rotation=30)
+        ax.legend()
+        fig.tight_layout()
+        path = chart_dir / "cluster_distribution_by_day.png"
+        fig.savefig(path, dpi=160)
+        plt.close(fig)
+        charts.append(str(path))
+
+    return charts
+
+
 def write_report(
     report_dir: Path,
     args: argparse.Namespace,
@@ -369,6 +549,7 @@ def write_report(
     model_dir: Path,
     assignment_dir: Path,
     started_at: float,
+    charts: list[str],
 ) -> None:
     report_dir.mkdir(parents=True, exist_ok=True)
     completed_at = datetime.now(timezone.utc)
@@ -397,6 +578,10 @@ def write_report(
         else "La silhouette de validation reste à interpréter avec prudence, car le "
         "clustering est non supervisé et les périodes futures peuvent avoir une "
         "distribution différente."
+    )
+    chart_lines = (
+        "\n".join(f"- `{Path(path).name}`" for path in charts)
+        or "- Aucun graphique généré."
     )
     report = f"""# Phase 4 — Standardisation et clustering KMeans
 
@@ -451,6 +636,12 @@ Les features les plus différenciantes de chaque cluster sont détaillées dans 
 - {holdout_interpretation}
 - Les deux clusters sont assez équilibrés, mais leur différence principale semble aussi liée au nombre de capteurs actifs et au volume de mesures.
 - Le cluster doit donc être décrit comme un profil de mesures, et non comme une activité humaine certaine.
+
+## Graphiques
+
+Les graphiques d'interprétation se trouvent dans `{report_dir / 'charts'}` :
+
+{chart_lines}
 
 ## Modèle et sorties
 
@@ -601,6 +792,7 @@ def run(args: argparse.Namespace) -> None:
 
         scaler_model = preprocess_model.stages[-1]
         profiles = cluster_profiles(predictions, feature_columns, scaler_model)
+        charts = create_charts(report_dir, metrics, profiles, predictions)
         write_csv(
             metrics,
             report_dir / "k_selection.csv",
@@ -642,6 +834,7 @@ def run(args: argparse.Namespace) -> None:
             model_dir,
             assignment_dir,
             started_at,
+            charts,
         )
         log(f"Rapport : {report_dir / 'clustering_report.md'}")
     finally:
