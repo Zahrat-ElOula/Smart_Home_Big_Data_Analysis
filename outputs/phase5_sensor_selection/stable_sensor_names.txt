@@ -1,0 +1,8 @@
+livingroom/tv/light
+kitchen/ambience/motion
+bedroom/ambience/motion
+balcon/door/contact
+livingroom/ambience/motion
+corridor/ambience/motion
+kitchen/fridge/contact
+bedroom/bed/pressure

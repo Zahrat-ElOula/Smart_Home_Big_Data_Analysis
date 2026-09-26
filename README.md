@@ -14,7 +14,8 @@ BigData/
 │   ├── phase1_eda.py
 │   ├── phase2_cleaning.py
 │   ├── phase3_features.py
-│   └── phase4_clustering.py
+│   ├── phase4_clustering.py
+│   └── phase5_sensor_selection.py
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
@@ -152,6 +153,29 @@ outputs/phase4_clustering/k_selection.csv
 ```
 
 Le clustering est non supervisé : les clusters doivent être interprétés avec `feature_dictionary.csv` et ne constituent pas automatiquement des noms d'activités.
+
+## Phase 5 — Étape 1 : sélection des capteurs stables
+
+Cette étape lit la table longue de la phase 3 et conserve les capteurs présents dans au moins 95 % des fenêtres observées :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase5_sensor_selection.py `
+  --master "local[4]" `
+  --shuffle-partitions 16 `
+  --min-window-coverage 0.95 `
+  --scratch-dir "C:\Users\zahra\AppData\Local\Temp\opencode\phase5_sensor"
+```
+
+Sorties :
+
+```text
+outputs/phase5_sensor_selection/stable_sensor_selection.csv
+outputs/phase5_sensor_selection/stable_sensor_names.txt
+outputs/phase5_sensor_selection/sensor_selection_summary.json
+outputs/phase5_sensor_selection/sensor_selection_report.md
+```
+
+Cette étape ne modifie pas encore le modèle de clustering. Elle prépare uniquement la liste des capteurs stables.
 
 ## Principaux résultats
 
