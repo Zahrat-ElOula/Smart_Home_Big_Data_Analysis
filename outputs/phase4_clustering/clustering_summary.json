@@ -1,0 +1,69 @@
+{
+  "phase": "phase4_clustering",
+  "started_at_utc": "2026-09-26T15:56:43.358928+00:00",
+  "completed_at_utc": "2026-09-26T15:58:43.976193+00:00",
+  "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min\\window_features_wide",
+  "model_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\models\\phase4_kmeans",
+  "assignment_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\clustering_5min",
+  "feature_count": 175,
+  "split_counts": {
+    "train": 35154,
+    "validation": 7533,
+    "test": 7533
+  },
+  "boundaries": [
+    "2020-07-04 07:35:00+00:00",
+    "2020-07-30 11:25:00+00:00"
+  ],
+  "k_candidates": [
+    {
+      "k": 2,
+      "silhouette": 0.20385307592986454,
+      "sample_count": 10470
+    },
+    {
+      "k": 3,
+      "silhouette": 0.1460811577052555,
+      "sample_count": 10470
+    },
+    {
+      "k": 4,
+      "silhouette": 0.1428294414146968,
+      "sample_count": 10470
+    },
+    {
+      "k": 5,
+      "silhouette": 0.19247676281760284,
+      "sample_count": 10470
+    },
+    {
+      "k": 6,
+      "silhouette": 0.12095116167195853,
+      "sample_count": 10470
+    }
+  ],
+  "selected_k": 2,
+  "holdout_silhouette": -0.25741801162185207,
+  "profiles": [
+    {
+      "cluster": 0,
+      "window_count": 25636,
+      "window_share": 0.510474,
+      "active_sensor_count_mean": 21.0016,
+      "total_sample_count_mean": 5379.8992,
+      "hour_mean": 12.2945,
+      "is_weekend_rate": 0.289437,
+      "top_differentiating_features": "kitchen_kettle_current_positive_value_count (+53.41); kitchen_kettle_current_zero_value_count (+4.09); livingroom_couch_pressure_min_value (+2.59); bathroom_ambience_humidity_min_value (+2.35); livingroom_couch_pressure_mean_value (+2.33); bathroom_ambience_humidity_mean_value (+2.31); bathroom_ambience_humidity_last_value (+2.31); livingroom_couch_pressure_last_value (+2.29)"
+    },
+    {
+      "cluster": 1,
+      "window_count": 24584,
+      "window_share": 0.489526,
+      "active_sensor_count_mean": 16.4524,
+      "total_sample_count_mean": 4449.4633,
+      "hour_mean": 10.7041,
+      "is_weekend_rate": 0.288399,
+      "top_differentiating_features": "kitchen_kettle_current_positive_value_count (+5.45); bathroom_ambience_humidity_min_value (+0.70); bathroom_ambience_humidity_mean_value (+0.69); bathroom_ambience_humidity_last_value (+0.69); bathroom_ambience_humidity_max_value (+0.67); bathroom_ambience_humidity_sample_count (+0.46); bathroom_ambience_humidity_positive_value_count (+0.46); bathroom_ambience_motion_max_value (+0.44)"
+    }
+  ]
+}

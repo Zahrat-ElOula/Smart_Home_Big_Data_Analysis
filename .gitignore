@@ -13,6 +13,7 @@ derby.log
 outputs/eda/_spark_*/
 outputs/eda/sample_*/
 data/processed/
+models/
 
 # IDE / OS
 .idea/

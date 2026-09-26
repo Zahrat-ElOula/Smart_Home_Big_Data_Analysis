@@ -13,7 +13,8 @@ BigData/
 ├── src/
 │   ├── phase1_eda.py
 │   ├── phase2_cleaning.py
-│   └── phase3_features.py
+│   ├── phase3_features.py
+│   └── phase4_clustering.py
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
@@ -126,6 +127,31 @@ outputs/phase3_features/feature_dictionary.csv
 ```
 
 La table longue contient les statistiques par capteur et par fenêtre. La table large contient une ligne par fenêtre et des colonnes prêtes pour une étape Spark ML. Les valeurs marquées `is_suspect_value` sont exclues des statistiques, mais le nombre de valeurs suspectes est conservé.
+
+## Phase 4 — Standardisation et clustering
+
+La phase 4 sépare les fenêtres par ordre chronologique, ajuste l'imputation et le `StandardScaler` uniquement sur la période d'entraînement, puis recherche le meilleur nombre de clusters :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase4_clustering.py `
+  --master "local[4]" `
+  --shuffle-partitions 16 `
+  --k-candidates "2,3,4,5,6" `
+  --scratch-dir "C:\Users\zahra\AppData\Local\Temp\opencode\phase4_spark"
+```
+
+Sorties :
+
+```text
+models/phase4_kmeans/preprocessing/
+models/phase4_kmeans/kmeans/
+data/processed/clustering_5min/
+outputs/phase4_clustering/clustering_report.md
+outputs/phase4_clustering/cluster_profiles.csv
+outputs/phase4_clustering/k_selection.csv
+```
+
+Le clustering est non supervisé : les clusters doivent être interprétés avec `feature_dictionary.csv` et ne constituent pas automatiquement des noms d'activités.
 
 ## Principaux résultats
 
