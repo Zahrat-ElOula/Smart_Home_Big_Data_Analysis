@@ -1,0 +1,17 @@
+{
+  "phase": "phase3_features",
+  "started_at_utc": "2026-09-26T15:26:31.493791+00:00",
+  "completed_at_utc": "2026-09-26T15:33:03.335487+00:00",
+  "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\measurements_clean",
+  "output_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min",
+  "window": "5 minutes",
+  "long_row_count": 942862,
+  "window_count": 50220,
+  "sensor_count": 24,
+  "first_window": "2020-02-26 01:00:00",
+  "last_window": "2020-08-26 12:30:00",
+  "usable_value_count": 247304702,
+  "suspect_value_count": 6,
+  "wide_row_count": 50220,
+  "wide_column_count": 224
+}

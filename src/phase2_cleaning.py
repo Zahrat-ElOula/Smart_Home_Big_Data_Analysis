@@ -132,7 +132,9 @@ def finite_value() -> Any:
     return value.isNotNull() & ~F.isnan(value) & (F.abs(value) != F.lit(float("inf")))
 
 
-def ensure_hadoop_windows(scratch_dir: Path, requested_home: Path | None) -> None:
+def ensure_hadoop_windows(
+    scratch_dir: Path, requested_home: Path | None, log_prefix: str = "PHASE 2"
+) -> None:
     """Configure les deux binaires nécessaires au Parquet local sous Windows."""
     if os.name != "nt":
         return
@@ -155,7 +157,7 @@ def ensure_hadoop_windows(scratch_dir: Path, requested_home: Path | None) -> Non
         ).is_file():
             os.environ["HADOOP_HOME"] = str(home)
             os.environ["Path"] = str(home / "bin") + os.pathsep + os.environ.get("Path", "")
-            log(f"HADOOP_HOME utilisé : {home}")
+            print(f"[{log_prefix}] HADOOP_HOME utilisé : {home}", flush=True)
             return
 
     if requested_home is not None:
@@ -188,7 +190,10 @@ def ensure_hadoop_windows(scratch_dir: Path, requested_home: Path | None) -> Non
     shutil.copy2(hadoop_dll, bin_dir / "hadoop.dll")
     os.environ["HADOOP_HOME"] = str(hadoop_home)
     os.environ["Path"] = str(bin_dir) + os.pathsep + os.environ.get("Path", "")
-    log(f"HADOOP_HOME configuré automatiquement : {hadoop_home}")
+    print(
+        f"[{log_prefix}] HADOOP_HOME configuré automatiquement : {hadoop_home}",
+        flush=True,
+    )
 
 
 def create_spark(args: argparse.Namespace) -> SparkSession:

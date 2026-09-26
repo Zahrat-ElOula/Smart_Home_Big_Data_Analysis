@@ -12,7 +12,8 @@ BigData/
 │   └── sensor_sample_float.csv
 ├── src/
 │   ├── phase1_eda.py
-│   └── phase2_cleaning.py
+│   ├── phase2_cleaning.py
+│   └── phase3_features.py
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
@@ -102,6 +103,29 @@ outputs/phase2_cleaning/cleaning_summary.json
 Les zéros sont conservés car ils représentent un état normal. Les courants négatifs sont conservés mais signalés par `is_suspect_value`. Le dédoublonnage exact est désactivé par défaut, car il serait coûteux sur 247 millions de lignes.
 
 Sous Windows, l'écriture Parquet nécessite `winutils.exe` et `hadoop.dll`. Le script détecte une installation locale ; sinon, utilisez `--hadoop-home` avec un dossier contenant `bin/winutils.exe` et `bin/hadoop.dll`.
+
+## Phase 3 — Construction des fenêtres temporelles
+
+La phase 3 lit le Parquet nettoyé et regroupe les événements par fenêtre de cinq minutes :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase3_features.py `
+  --master "local[4]" `
+  --shuffle-partitions 16 `
+  --window "5 minutes" `
+  --scratch-dir "C:\Users\zahra\AppData\Local\Temp\opencode\phase3_spark"
+```
+
+Sorties :
+
+```text
+data/processed/features_5min/sensor_features_long/
+data/processed/features_5min/window_features_wide/
+outputs/phase3_features/feature_report.md
+outputs/phase3_features/feature_dictionary.csv
+```
+
+La table longue contient les statistiques par capteur et par fenêtre. La table large contient une ligne par fenêtre et des colonnes prêtes pour une étape Spark ML. Les valeurs marquées `is_suspect_value` sont exclues des statistiques, mais le nombre de valeurs suspectes est conservé.
 
 ## Principaux résultats
 
