@@ -16,7 +16,8 @@ BigData/
 │   ├── phase3_features.py
 │   ├── phase4_clustering.py
 │   ├── phase5_sensor_selection.py
-│   └── phase5_feature_reduction.py
+│   ├── phase5_feature_reduction.py
+│   └── phase5_model_selection.py
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
@@ -199,6 +200,29 @@ outputs/phase5_feature_reduction/feature_reduction_summary.json
 ```
 
 Le clustering n'est pas encore réentraîné à cette étape.
+
+## Phase 5 — Étape 3 : sélection robuste de k
+
+Après la réduction des variables, cette étape entraîne KMeans sur toute la période d'entraînement pour plusieurs valeurs de `k`, mesure les silhouettes entraînement/validation/test et impose une taille minimale de cluster :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase5_model_selection.py `
+  --master "local[4]" `
+  --shuffle-partitions 16 `
+  --k-candidates "2,3,4,5,6" `
+  --min-cluster-share 0.01 `
+  --evaluation-sample-fraction 0.30 `
+  --scratch-dir "C:\Users\zahra\AppData\Local\Temp\opencode\phase5_model_selection"
+```
+
+Sorties :
+
+```text
+outputs/phase5_model_selection/k_selection_full.csv
+outputs/phase5_model_selection/model_selection_summary.json
+outputs/phase5_model_selection/model_selection_report.md
+outputs/phase5_model_selection/charts/
+```
 
 ## Principaux résultats
 
