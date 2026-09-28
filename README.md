@@ -18,6 +18,7 @@ BigData/
 │   ├── phase5_sensor_selection.py
 │   ├── phase5_feature_reduction.py
 │   └── phase5_model_selection.py
+├── docker-compose.yml
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
@@ -222,6 +223,33 @@ outputs/phase5_model_selection/k_selection_full.csv
 outputs/phase5_model_selection/model_selection_summary.json
 outputs/phase5_model_selection/model_selection_report.md
 outputs/phase5_model_selection/charts/
+```
+
+## Phase 6 — Kafka : infrastructure
+
+Docker Desktop doit être démarré. Le broker Kafka local est défini dans `docker-compose.yml` :
+
+```powershell
+docker compose up -d
+```
+
+Après le démarrage du broker, créer le topic :
+
+```powershell
+docker exec smart-home-kafka /opt/kafka/bin/kafka-topics.sh `
+  --bootstrap-server localhost:9092 `
+  --create --if-not-exists `
+  --topic smart-home-events `
+  --partitions 1 `
+  --replication-factor 1
+```
+
+Vérification du topic :
+
+```powershell
+docker exec smart-home-kafka /opt/kafka/bin/kafka-topics.sh `
+  --bootstrap-server localhost:9092 `
+  --list
 ```
 
 ## Principaux résultats
