@@ -1,7 +1,7 @@
 {
   "phase": "phase4_clustering",
-  "started_at_utc": "2026-09-28T17:43:06.332488+00:00",
-  "completed_at_utc": "2026-09-28T17:44:01.604437+00:00",
+  "started_at_utc": "2026-09-28T17:45:23.124569+00:00",
+  "completed_at_utc": "2026-09-28T17:46:25.530709+00:00",
   "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min\\window_features_reduced",
   "model_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\models\\phase5_final_kmeans",
   "assignment_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\clustering_5min_final",
