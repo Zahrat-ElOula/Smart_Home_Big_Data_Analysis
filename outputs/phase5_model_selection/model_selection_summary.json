@@ -1,0 +1,71 @@
+{
+  "phase": "phase5_step4_model_selection",
+  "started_at_utc": "2026-09-28T17:24:50.874526+00:00",
+  "completed_at_utc": "2026-09-28T17:25:53.046858+00:00",
+  "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min\\window_features_reduced",
+  "feature_count": 47,
+  "split_counts": {
+    "train": 35154,
+    "validation": 7533,
+    "test": 7533
+  },
+  "boundaries": [
+    "2020-07-04 07:35:00+00:00",
+    "2020-07-30 11:25:00+00:00"
+  ],
+  "k_candidates": [
+    {
+      "k": 2,
+      "train_silhouette": 0.1730263787138944,
+      "validation_silhouette": -0.14500796665701907,
+      "test_silhouette": -0.1155585913881253,
+      "smallest_cluster_count": 16560,
+      "min_cluster_share": 0.47107014848950335,
+      "eligible": true,
+      "selected": true
+    },
+    {
+      "k": 3,
+      "train_silhouette": 0.18891750605856877,
+      "validation_silhouette": -0.1436655990379888,
+      "test_silhouette": -0.13398771112335978,
+      "smallest_cluster_count": 51,
+      "min_cluster_share": 0.0014507595152756442,
+      "eligible": false,
+      "selected": false
+    },
+    {
+      "k": 4,
+      "train_silhouette": 0.22675135304881552,
+      "validation_silhouette": 0.1439713293525655,
+      "test_silhouette": 0.1223441357961469,
+      "smallest_cluster_count": 51,
+      "min_cluster_share": 0.0014507595152756442,
+      "eligible": false,
+      "selected": false
+    },
+    {
+      "k": 5,
+      "train_silhouette": 0.23081651506498954,
+      "validation_silhouette": 0.06905040740660269,
+      "test_silhouette": -0.04746472767326516,
+      "smallest_cluster_count": 51,
+      "min_cluster_share": 0.0014507595152756442,
+      "eligible": false,
+      "selected": false
+    },
+    {
+      "k": 6,
+      "train_silhouette": 0.2538816446475134,
+      "validation_silhouette": 0.10643611058582654,
+      "test_silhouette": 0.19651756698234293,
+      "smallest_cluster_count": 51,
+      "min_cluster_share": 0.0014507595152756442,
+      "eligible": false,
+      "selected": false
+    }
+  ],
+  "min_cluster_share_threshold": 0.01,
+  "selected_k": 2,
+  "selection_reason": "Meilleure silhouette de validation parmi les k éligibles."
+}

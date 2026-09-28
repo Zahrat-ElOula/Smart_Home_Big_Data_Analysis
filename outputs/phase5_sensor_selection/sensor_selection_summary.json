@@ -1,0 +1,24 @@
+{
+  "phase": "phase5_step1_sensor_selection",
+  "started_at_utc": "2026-09-26T20:56:14.709527+00:00",
+  "completed_at_utc": "2026-09-26T20:57:24.699656+00:00",
+  "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min\\sensor_features_long",
+  "output_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\phase5_sensor_selection",
+  "global_window_count": 50220,
+  "first_window": "2020-02-26 01:00:00",
+  "last_window": "2020-08-26 12:30:00",
+  "global_span_days": 182.4792,
+  "min_window_coverage": 0.95,
+  "sensor_count": 24,
+  "selected_sensor_count": 8,
+  "selected_sensor_names": [
+    "livingroom/tv/light",
+    "kitchen/ambience/motion",
+    "bedroom/ambience/motion",
+    "balcon/door/contact",
+    "livingroom/ambience/motion",
+    "corridor/ambience/motion",
+    "kitchen/fridge/contact",
+    "bedroom/bed/pressure"
+  ]
+}

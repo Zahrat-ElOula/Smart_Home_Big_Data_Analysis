@@ -14,7 +14,10 @@ BigData/
 │   ├── phase1_eda.py
 │   ├── phase2_cleaning.py
 │   ├── phase3_features.py
-│   └── phase4_clustering.py
+│   ├── phase4_clustering.py
+│   ├── phase5_sensor_selection.py
+│   ├── phase5_feature_reduction.py
+│   └── phase5_model_selection.py
 ├── outputs/
 │   └── eda/                 # créé par le script
 ├── requirements.txt
@@ -152,6 +155,74 @@ outputs/phase4_clustering/k_selection.csv
 ```
 
 Le clustering est non supervisé : les clusters doivent être interprétés avec `feature_dictionary.csv` et ne constituent pas automatiquement des noms d'activités.
+
+## Phase 5 — Étape 1 : sélection des capteurs stables
+
+Cette étape lit la table longue de la phase 3 et conserve les capteurs présents dans au moins 95 % des fenêtres observées :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase5_sensor_selection.py `
+  --master "local[4]" `
+  --shuffle-partitions 16 `
+  --min-window-coverage 0.95 `
+  --scratch-dir "C:\Users\zahra\AppData\Local\Temp\opencode\phase5_sensor"
+```
+
+Sorties :
+
+```text
+outputs/phase5_sensor_selection/stable_sensor_selection.csv
+outputs/phase5_sensor_selection/stable_sensor_names.txt
+outputs/phase5_sensor_selection/sensor_selection_summary.json
+outputs/phase5_sensor_selection/sensor_selection_report.md
+```
+
+Cette étape ne modifie pas encore le modèle de clustering. Elle prépare uniquement la liste des capteurs stables.
+
+## Phase 5 — Étape 2 : réduction des variables
+
+Cette étape utilise les 8 capteurs stables et conserve 5 statistiques par capteur :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase5_feature_reduction.py `
+  --master "local[4]" `
+  --shuffle-partitions 16 `
+  --scratch-dir "C:\Users\zahra\AppData\Local\Temp\opencode\phase5_reduction"
+```
+
+Sorties :
+
+```text
+data/processed/features_5min/window_features_reduced/
+outputs/phase5_feature_reduction/feature_reduction_report.md
+outputs/phase5_feature_reduction/reduced_feature_dictionary.csv
+outputs/phase5_feature_reduction/feature_reduction_summary.json
+```
+
+Le clustering n'est pas encore réentraîné à cette étape.
+
+## Phase 5 — Étape 3 : sélection robuste de k
+
+Après la réduction des variables, cette étape entraîne KMeans sur toute la période d'entraînement pour plusieurs valeurs de `k`, mesure les silhouettes entraînement/validation/test et impose une taille minimale de cluster :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase5_model_selection.py `
+  --master "local[4]" `
+  --shuffle-partitions 16 `
+  --k-candidates "2,3,4,5,6" `
+  --min-cluster-share 0.01 `
+  --evaluation-sample-fraction 0.30 `
+  --scratch-dir "C:\Users\zahra\AppData\Local\Temp\opencode\phase5_model_selection"
+```
+
+Sorties :
+
+```text
+outputs/phase5_model_selection/k_selection_full.csv
+outputs/phase5_model_selection/model_selection_summary.json
+outputs/phase5_model_selection/model_selection_report.md
+outputs/phase5_model_selection/charts/
+```
 
 ## Principaux résultats
 

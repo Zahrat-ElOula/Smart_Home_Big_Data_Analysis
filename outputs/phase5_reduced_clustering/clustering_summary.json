@@ -1,0 +1,79 @@
+{
+  "phase": "phase4_clustering",
+  "started_at_utc": "2026-09-28T17:20:34.765789+00:00",
+  "completed_at_utc": "2026-09-28T17:24:19.302602+00:00",
+  "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min\\window_features_reduced",
+  "model_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\models\\phase5_reduced_kmeans",
+  "assignment_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\clustering_5min_reduced",
+  "feature_count": 47,
+  "split_counts": {
+    "train": 35154,
+    "validation": 7533,
+    "test": 7533
+  },
+  "boundaries": [
+    "2020-07-04 07:35:00+00:00",
+    "2020-07-30 11:25:00+00:00"
+  ],
+  "k_candidates": [
+    {
+      "k": 2,
+      "silhouette": 0.7311757613253428,
+      "sample_count": 10622
+    },
+    {
+      "k": 3,
+      "silhouette": 0.7678888962945467,
+      "sample_count": 10622
+    },
+    {
+      "k": 4,
+      "silhouette": 0.6150099232257189,
+      "sample_count": 10622
+    },
+    {
+      "k": 5,
+      "silhouette": 0.2565175341183105,
+      "sample_count": 10622
+    },
+    {
+      "k": 6,
+      "silhouette": 0.2556840620998663,
+      "sample_count": 10622
+    }
+  ],
+  "selected_k": 3,
+  "holdout_silhouette": -0.1436655990379888,
+  "profiles": [
+    {
+      "cluster": 0,
+      "window_count": 26191,
+      "window_share": 0.521525,
+      "active_sensor_count_mean": 20.5518,
+      "total_sample_count_mean": 5333.6397,
+      "hour_mean": 13.2331,
+      "is_weekend_rate": 0.268069,
+      "top_differentiating_features": "kitchen_fridge_contact_positive_value_count (+2.29); kitchen_fridge_contact_mean_value (+2.28); kitchen_fridge_contact_zero_value_count (+1.03); bedroom_bed_pressure_mean_value (+0.98); bedroom_bed_pressure_max_value (+0.93); active_sensor_count (+0.62); total_sample_count (+0.55); corridor_ambience_motion_max_value (+0.48)"
+    },
+    {
+      "cluster": 1,
+      "window_count": 23972,
+      "window_share": 0.47734,
+      "active_sensor_count_mean": 16.8334,
+      "total_sample_count_mean": 4484.0131,
+      "hour_mean": 9.641,
+      "is_weekend_rate": 0.312198,
+      "top_differentiating_features": "corridor_ambience_motion_max_value (+0.69); corridor_ambience_motion_positive_value_count (+0.51); corridor_ambience_motion_mean_value (+0.51); corridor_ambience_motion_zero_value_count (+0.48); bedroom_bed_pressure_mean_value (+0.37); bedroom_bed_pressure_max_value (+0.35); bedroom_bed_pressure_sample_count (+0.35); bedroom_bed_pressure_positive_value_count (+0.35)"
+    },
+    {
+      "cluster": 2,
+      "window_count": 57,
+      "window_share": 0.001135,
+      "active_sensor_count_mean": 18.5965,
+      "total_sample_count_mean": 2115.4912,
+      "hour_mean": 11.0351,
+      "is_weekend_rate": 0.087719,
+      "top_differentiating_features": "balcon_door_contact_sample_count (+23.84); livingroom_tv_light_sample_count (+23.75); livingroom_tv_light_positive_value_count (+23.75); kitchen_fridge_contact_sample_count (+23.68); livingroom_ambience_motion_sample_count (+23.31); kitchen_ambience_motion_sample_count (+23.06); bedroom_ambience_motion_sample_count (+22.67); corridor_ambience_motion_sample_count (+22.16)"
+    }
+  ]
+}
