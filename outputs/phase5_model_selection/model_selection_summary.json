@@ -1,7 +1,7 @@
 {
   "phase": "phase5_step4_model_selection",
-  "started_at_utc": "2026-09-28T14:28:34.203629+00:00",
-  "completed_at_utc": "2026-09-28T14:31:51.118084+00:00",
+  "started_at_utc": "2026-09-28T17:24:50.874526+00:00",
+  "completed_at_utc": "2026-09-28T17:25:53.046858+00:00",
   "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\features_5min\\window_features_reduced",
   "feature_count": 47,
   "split_counts": {
