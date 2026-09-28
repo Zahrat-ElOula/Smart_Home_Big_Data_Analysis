@@ -17,7 +17,9 @@ BigData/
 │   ├── phase4_clustering.py
 │   ├── phase5_sensor_selection.py
 │   ├── phase5_feature_reduction.py
-│   └── phase5_model_selection.py
+│   ├── phase5_model_selection.py
+│   ├── phase6_kafka_producer.py
+│   └── phase6_streaming_consumer.py
 ├── docker-compose.yml
 ├── outputs/
 │   └── eda/                 # créé par le script
@@ -250,6 +252,39 @@ Vérification du topic :
 docker exec smart-home-kafka /opt/kafka/bin/kafka-topics.sh `
   --bootstrap-server localhost:9092 `
   --list
+```
+
+## Phase 6 — Kafka : producteur
+
+Le producteur relit un échantillon des mesures nettoyées et envoie des messages JSON dans `smart-home-events` :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase6_kafka_producer.py `
+  --bootstrap-server "localhost:9092" `
+  --topic "smart-home-events" `
+  --max-rows 1000 `
+  --delay-seconds 0.01
+```
+
+## Phase 6 — Kafka : consommateur Spark Structured Streaming
+
+Le consommateur lit le topic, valide les messages JSON et les sauvegarde en Parquet :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase6_streaming_consumer.py `
+  --bootstrap-server "localhost:9092" `
+  --topic "smart-home-events" `
+  --timeout-seconds 20 `
+  --max-offsets-per-trigger 1000
+```
+
+La première exécution peut télécharger le connecteur Spark Kafka `spark-sql-kafka-0-10_2.13:4.2.0` via Maven/Ivy.
+
+Sorties :
+
+```text
+outputs/phase6_streaming/parsed_events/
+outputs/phase6_streaming/consumer_summary.json
 ```
 
 ## Principaux résultats
