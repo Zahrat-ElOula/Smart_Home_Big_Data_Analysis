@@ -21,7 +21,7 @@ from pyspark.ml.clustering import KMeansModel
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
-from phase6_streaming_consumer import create_spark, parse_messages
+from phase6_streaming_consumer import create_spark, parse_messages, wait_for_drain
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -278,20 +278,6 @@ relu depuis le début à chaque exécution, le checkpoint étant supprimé au d�
 """
 
 
-def wait_for_drain(query: Any, args: argparse.Namespace) -> None:
-    """Attend la fin du flux : un micro-batch vide signifie topic épuisé."""
-    deadline = time.time() + args.timeout_seconds
-    while time.time() < deadline:
-        if not query.isActive:
-            return
-        progress = query.lastProgress
-        if progress is not None and progress.get("numInputRows", 0) == 0:
-            log("Topic épuisé.")
-            return
-        time.sleep(args.poll_seconds)
-    log("Délai maximal atteint, arrêt de la query.")
-
-
 def sum_offsets(value: Any) -> int:
     """Somme des offsets Kafka, publiés sous forme de JSON sérialisé.
 
@@ -393,7 +379,7 @@ def run(args: argparse.Namespace) -> None:
             "checkpointLocation", str(checkpoint_dir)
         ).start()
         log(f"Query démarrée, arrêt après {args.timeout_seconds} s maximum.")
-        wait_for_drain(query, args)
+        wait_for_drain(query, args.timeout_seconds, args.poll_seconds)
         progress = list(query.recentProgress)
         batch_count = sum(1 for item in progress if item.get("numInputRows", 0) > 0)
         consumed_events = count_consumed_offsets(progress)

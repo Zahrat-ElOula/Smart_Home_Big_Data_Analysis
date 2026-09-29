@@ -1,6 +1,6 @@
 # Rapport EDA — Smart Home
 
-Généré le 2026-09-24 20:33:38+00:00 UTC.
+Généré le 2026-09-29 15:16:40+00:00 UTC.
 
 ## 1. Démarche
 
@@ -9,7 +9,7 @@ Généré le 2026-09-24 20:33:38+00:00 UTC.
 3. Uniformiser les types, convertir les timestamps et conserver les enregistrements invalides comme métriques de qualité.
 4. Calculer les volumes, périodes, min/max, moyennes et contrôles de qualité.
 5. Joindre les mesures aux métadonnées sur `sensor_id`.
-6. Construire un échantillon aléatoire sans remise de **0.2000%**, soit **495,890 lignes** (seed `42`), puis conserver pour les profils temporels uniquement les événements à timestamp et valeur finis, dont le capteur est déclaré.
+6. Construire un échantillon aléatoire sans remise de **1.0000%**, soit **2,471,863 lignes** (seed `42`), puis conserver pour les profils temporels uniquement les événements à timestamp et valeur finis, dont le capteur est déclaré.
 7. Produire des tableaux CSV, des graphiques et une synthèse Markdown.
 
 Les volumes, périodes, min/max, valeurs manquantes et l'intégrité `sensor_id` sont calculés sur **toutes les lignes**. Les quantiles et les profils temporels sont calculés sur l'échantillon afin de limiter les recomputations et la sortie sur le driver.
@@ -65,8 +65,8 @@ Les volumes, périodes, min/max, valeurs manquantes et l'intégrité `sensor_id`
 - **Volume** : les deux fichiers de mesures contiennent **247,304,708 lignes**. Cette taille justifie Spark et interdit un chargement complet avec Pandas.
 - **Période** : les mesures couvrent **2020-02-26 01:00:00.087705** à **2020-08-26 12:30:24.290233**, soit environ **182.48 jours**.
 - **Capteurs** : **24** capteurs produisent des mesures. Les dix plus actifs sont affichés dans le tableau.
-- **Heure la plus active** : 18:00–18:59 avec 21,411 mesures dans l'échantillon.
-- **Jour le plus actif** : 2020-06-18 avec 3,427 mesures dans l'échantillon.
+- **Heure la plus active** : 17:00–17:59 avec 105,686 mesures dans l'échantillon.
+- **Jour le plus actif** : 2020-06-04 avec 17,052 mesures dans l'échantillon.
 - **Jour de semaine le plus chargé** : Samedi.
 - **Attention à l’interprétation** : les capteurs n'ont pas la même unité. Une valeur de 1024 pour une lumière ou une pression n’est pas directement comparable à une valeur de courant électrique.
 - **Objectif ML** : aucune colonne d’activité étiquetée n’est présente. L’étape suivante devra donc créer des fenêtres temporelles puis, soit produire des pseudo-étiquettes validées, soit utiliser une méthode non supervisée.

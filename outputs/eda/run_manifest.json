@@ -1,12 +1,12 @@
 {
   "phase": "phase1_eda",
-  "started_at_utc": "2026-09-24T20:10:19.915734+00:00",
-  "completed_at_utc": "2026-09-24T20:33:38.597950+00:00",
+  "started_at_utc": "2026-09-29T15:13:33.699336+00:00",
+  "completed_at_utc": "2026-09-29T15:16:40.919124+00:00",
   "data_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\human_activity_raw_sensor_data",
-  "output_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\eda_test",
-  "master": "local[4]",
-  "shuffle_partitions": 16,
-  "sample_fraction": 0.002,
+  "output_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\eda",
+  "master": "local[8]",
+  "shuffle_partitions": 32,
+  "sample_fraction": 0.01,
   "sample_seed": 42,
   "python_version": "3.14.6",
   "pyspark_version": "4.2.0",
@@ -71,7 +71,7 @@
     "source_type_conflict_sensor_count": 0,
     "orphan_rows_reported": 0,
     "missing_sensor_rows_reported": 0,
-    "sample_count": 495890
+    "sample_count": 2471863
   },
-  "report": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\eda_test\\eda_report.md"
+  "report": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\eda\\eda_report.md"
 }

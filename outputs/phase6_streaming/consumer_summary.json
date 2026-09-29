@@ -1,11 +1,11 @@
 {
   "phase": "phase6_step3_streaming_consumer",
-  "started_at_utc": "2026-09-28T21:27:01.425821+00:00",
-  "completed_at_utc": "2026-09-28T21:27:44.596536+00:00",
+  "started_at_utc": "2026-09-29T15:45:24.934998+00:00",
+  "completed_at_utc": "2026-09-29T15:46:05.549558+00:00",
   "bootstrap_server": "localhost:9092",
   "topic": "smart-home-events",
-  "timeout_seconds": 20,
-  "max_offsets_per_trigger": 1000,
-  "parsed_event_count": 1000,
+  "timeout_seconds": 1500,
+  "max_offsets_per_trigger": 80000,
+  "parsed_event_count": 484092,
   "output_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\phase6_streaming\\parsed_events"
 }

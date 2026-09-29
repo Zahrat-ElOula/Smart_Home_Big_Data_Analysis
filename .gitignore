@@ -16,6 +16,8 @@ data/processed/
 models/
 outputs/phase6_streaming/checkpoint/
 outputs/phase6_streaming/inference_checkpoint/
+# Intermediaire regenerable : 484 092 evenements parses
+outputs/phase6_streaming/parsed_events/
 # Hadoop checksum sidecars
 *.crc
 

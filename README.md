@@ -2,6 +2,10 @@
 
 Analyse du dataset Mendeley **Multi-sensor dataset of human activities in a smart home environment** avec PySpark.
 
+La synthèse du projet, avec l'interprétation de chaque phase, se trouve dans
+[`RAPPORT.md`](RAPPORT.md). Ce README décrit la structure du dépôt et les
+commandes d'exécution.
+
 ## Structure
 
 ```text
@@ -23,8 +27,18 @@ BigData/
 │   └── phase6_streaming_inference.py
 ├── docker-compose.yml
 ├── outputs/
-│   └── eda/                 # créé par le script
+│   ├── eda/                 # phase 1
+│   ├── phase2_cleaning/
+│   ├── phase3_features/
+│   ├── phase4_clustering/
+│   ├── phase5_sensor_selection/
+│   ├── phase5_feature_reduction/
+│   ├── phase5_reduced_clustering/
+│   ├── phase5_model_selection/
+│   ├── phase5_final_model/
+│   └── phase6_streaming/
 ├── requirements.txt
+├── RAPPORT.md
 └── README.md
 ```
 
@@ -71,7 +85,8 @@ Après avoir créé `.venv` et installé les dépendances :
   --seed 42
 ```
 
-Un second passage avec un échantillon plus petit peut limiter le travail sur les quantiles, mais il reste une **ingestion complète** :
+Pour limiter le travail sur les quantiles, un second passage avec un échantillon
+plus petit reste une **ingestion complète** :
 
 ```powershell
 .\.venv\Scripts\python.exe src\phase1_eda.py `
@@ -79,7 +94,7 @@ Un second passage avec un échantillon plus petit peut limiter le travail sur le
   --shuffle-partitions 16 `
   --sample-fraction 0.002 `
   --no-write-sample-parquet `
-  --output-dir outputs\eda_test
+  --output-dir outputs\eda_light
 ```
 
 Un répertoire de travail Spark peut être choisi explicitement, par exemple sur un autre disque :
@@ -279,16 +294,21 @@ Le consommateur lit le topic, valide les messages JSON et les sauvegarde en Parq
 .\.venv\Scripts\python.exe src\phase6_streaming_consumer.py `
   --bootstrap-server "localhost:9092" `
   --topic "smart-home-events" `
-  --timeout-seconds 20 `
-  --max-offsets-per-trigger 1000
+  --timeout-seconds 1500 `
+  --max-offsets-per-trigger 80000
 ```
 
 La première exécution peut télécharger le connecteur Spark Kafka `spark-sql-kafka-0-10_2.13:4.2.0` via Maven/Ivy.
 
+Le consommateur écrit les événements en Parquet au fil des micro-batchs. Un sink
+mémoire avait été essayé en premier : il conserve tout le topic en RAM avant la
+sauvegarde, ce qui déclenche un `OutOfMemoryError` dès que le topic dépasse
+quelques centaines de milliers de messages.
+
 Sorties :
 
 ```text
-outputs/phase6_streaming/parsed_events/
+outputs/phase6_streaming/parsed_events/     # non versionné, régénérable
 outputs/phase6_streaming/consumer_summary.json
 ```
 
@@ -333,7 +353,34 @@ Deux points de vigilance documentés dans le rapport :
 
 ## Principaux résultats
 
-Les résultats sont créés dans `outputs/eda/` :
+### Vue d'ensemble
+
+| Phase | Résultat clé |
+| --- | --- |
+| 1 — EDA | 247 304 708 mesures, 24 capteurs, 182,5 jours, **0** valeur manquante et **0** enregistrement corrompu |
+| 2 — Nettoyage | **0** ligne supprimée, 6 valeurs impossibles signalées (`is_suspect_value`) |
+| 3 — Fenêtres | 50 220 fenêtres de 5 min, table large de 224 colonnes |
+| 4 — Clustering | 175 variables, silhouette de validation **−0,2574** |
+| 5 — Modèle final | 175 → **47** variables (−73,14 %), **k = 2**, silhouette de validation **−0,1450** |
+| 6 — Streaming | 484 092 messages, 7 micro-batchs, 102 fenêtres prédites |
+
+### Profils des deux clusters
+
+| Cluster | Fenêtres | Part | Capteurs actifs | Échantillons | Heure moyenne |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 0 | 26 133 | 52,04 % | 20,54 | 5 322,1 | 13,26 |
+| 1 | 24 087 | 47,96 % | 16,86 | 4 492,9 | 9,62 |
+
+La différence principale porte sur le **nombre de capteurs actifs** et le
+**volume de mesures**, pas sur une activité humaine identifiée. Un cluster
+décrit donc un profil de densité de mesures.
+
+### Rapport de synthèse
+
+La synthèse complète, avec l'interprétation de chaque phase, se trouve dans
+[`RAPPORT.md`](RAPPORT.md).
+
+### Sorties de la phase 1
 
 ```text
 outputs/eda/
@@ -351,14 +398,14 @@ outputs/eda/
 │   ├── daily_activity_sample.csv
 │   ├── hourly_activity_sample.csv
 │   ├── activity_by_hour_of_day.csv
-│   └── activity_by_day_of_week.csv
-├── charts/
-│   ├── daily_activity.png
-│   ├── activity_by_hour.png
-│   ├── top_sensors.png
-│   └── sensor_coverage.png
-└── sample_0.01/
-    └── données Parquet de l'échantillon
+│   ├── activity_by_day_of_week.csv
+│   ├── sample_events_first_by_time.csv
+│   └── sample_events_highest_ids.csv
+└── charts/
+    ├── daily_activity.png
+    ├── activity_by_hour.png
+    ├── top_sensors.png
+    └── sensor_coverage.png
 ```
 
 ## Comment lire les résultats

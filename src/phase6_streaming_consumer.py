@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +19,7 @@ from typing import Any
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
+from pyspark.sql.streaming import StreamingQuery
 
 from phase1_eda import ensure_java_home
 from phase2_cleaning import ensure_hadoop_windows
@@ -54,6 +56,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
     parser.add_argument("--timeout-seconds", type=int, default=20)
+    parser.add_argument("--poll-seconds", type=float, default=3.0)
     parser.add_argument("--max-offsets-per-trigger", type=int, default=1000)
     parser.add_argument("--master", default="local[2]")
     parser.add_argument("--shuffle-partitions", type=int, default=8)
@@ -71,7 +74,31 @@ def parse_args() -> argparse.Namespace:
         parser.error("--timeout-seconds doit être supérieur à 0.")
     if args.max_offsets_per_trigger < 1:
         parser.error("--max-offsets-per-trigger doit être supérieur à 0.")
+    if args.poll_seconds <= 0:
+        parser.error("--poll-seconds doit être supérieur à 0.")
     return args
+
+
+def wait_for_drain(
+    query: StreamingQuery,
+    timeout_seconds: int,
+    poll_seconds: float,
+) -> None:
+    """Attend la fin du flux : un micro-batch vide signifie topic épuisé.
+
+    Arrêter la query au bout d'un délai fixe annulerait le micro-batch en cours
+    et perdrait ses messages.
+    """
+    deadline = time.time() + timeout_seconds
+    while time.time() < deadline:
+        if not query.isActive:
+            return
+        progress = query.lastProgress
+        if progress is not None and progress.get("numInputRows", 0) == 0:
+            log("Topic épuisé.")
+            return
+        time.sleep(poll_seconds)
+    log("Délai maximal atteint, arrêt de la query.")
 
 
 def create_spark(args: argparse.Namespace) -> SparkSession:
@@ -163,6 +190,13 @@ def run(args: argparse.Namespace) -> None:
     started_at = time.time()
     output_dir = args.output_dir.expanduser().resolve()
     report_dir = args.report_dir.expanduser().resolve()
+    checkpoint_dir = report_dir / "checkpoint"
+    # Le topic est relu depuis le début à chaque exécution : les sorties et le
+    # checkpoint précédents sont donc supprimés.
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    if checkpoint_dir.exists():
+        shutil.rmtree(checkpoint_dir)
     spark = create_spark(args)
     query = None
     try:
@@ -176,24 +210,29 @@ def run(args: argparse.Namespace) -> None:
             .option("maxOffsetsPerTrigger", str(args.max_offsets_per_trigger))
             .load()
         )
-        parsed = parse_messages(raw)
+        parsed = parse_messages(raw).drop("raw_value")
 
+        # Écriture directe en Parquet : un sink mémoire conserverait tout le
+        # topic en RAM avant la sauvegarde, ce qui épuise le driver.
         query = (
-            parsed.writeStream.format("memory")
-            .queryName("smart_home_parsed_events")
+            parsed.writeStream.format("parquet")
             .outputMode("append")
-            .option("checkpointLocation", str(report_dir / "checkpoint"))
+            .option("path", str(output_dir))
+            .option("checkpointLocation", str(checkpoint_dir))
             .start()
         )
-        log(f"Query démarrée. Attente de {args.timeout_seconds} secondes.")
-        query.awaitTermination(args.timeout_seconds)
+        log(f"Query démarrée. Arrêt après {args.timeout_seconds} s maximum.")
+        wait_for_drain(query, args.timeout_seconds, args.poll_seconds)
+        if not query.isActive:
+            raise RuntimeError(f"Query interrompue : {query.exception()}")
         query.stop()
 
-        table = spark.table("smart_home_parsed_events")
-        count = table.count()
+        count = spark.read.parquet(str(output_dir)).count()
+        if count == 0:
+            raise RuntimeError(
+                "Aucun message n'a été consommé. Vérifiez le topic et son contenu."
+            )
         log(f"Messages JSON valides : {count}")
-        output_dir.mkdir(parents=True, exist_ok=True)
-        table.drop("raw_value").write.mode("overwrite").parquet(str(output_dir))
         log(f"Events sauvegardés dans {output_dir}")
         write_summary(report_dir, args, count, started_at)
     finally:
