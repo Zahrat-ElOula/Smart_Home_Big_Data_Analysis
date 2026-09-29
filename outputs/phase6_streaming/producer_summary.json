@@ -1,12 +1,16 @@
 {
   "phase": "phase6_step2_kafka_producer",
-  "started_at_utc": "2026-09-28T21:23:10.629905+00:00",
-  "completed_at_utc": "2026-09-28T21:23:39.035255+00:00",
+  "started_at_utc": "2026-09-29T12:34:55.365095+00:00",
+  "completed_at_utc": "2026-09-29T12:37:24.673464+00:00",
   "input_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\data\\processed\\measurements_clean",
   "bootstrap_server": "localhost:9092",
   "topic": "smart-home-events",
-  "requested_rows": 1000,
-  "sent_rows": 1000,
-  "delay_seconds": 0.001,
+  "requested_rows": 250000,
+  "sent_rows": 63272,
+  "requested_start": "2020-06-29 07:00:00",
+  "requested_end": "2020-06-29 09:30:00",
+  "first_event_timestamp": "2020-06-29 07:00:00.017879",
+  "last_event_timestamp": "2020-06-29 09:29:59.588398",
+  "delay_seconds": 0.0,
   "payload_format": "JSON"
 }

@@ -14,6 +14,10 @@ outputs/eda/_spark_*/
 outputs/eda/sample_*/
 data/processed/
 models/
+outputs/phase6_streaming/checkpoint/
+outputs/phase6_streaming/inference_checkpoint/
+# Hadoop checksum sidecars
+*.crc
 
 # IDE / OS
 .idea/

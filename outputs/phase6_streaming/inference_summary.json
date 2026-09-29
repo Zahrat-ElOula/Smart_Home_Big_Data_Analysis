@@ -1,0 +1,20 @@
+{
+  "phase": "phase6_step4_streaming_inference",
+  "started_at_utc": "2026-09-29T14:34:09.756707+00:00",
+  "completed_at_utc": "2026-09-29T14:37:16.591817+00:00",
+  "bootstrap_server": "localhost:9092",
+  "topic": "smart-home-events",
+  "model_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\models\\phase5_final_kmeans",
+  "model_features": 47,
+  "processed_batches": 7,
+  "consumed_events": 484092,
+  "predicted_windows": 108,
+  "distinct_windows": 102,
+  "cluster_counts": {
+    "1": 30,
+    "0": 78
+  },
+  "first_window": "2020-06-17 21:00:00",
+  "last_window": "2020-06-29 09:25:00",
+  "output_dir": "C:\\Users\\zahra\\OneDrive\\Desktop\\BigData\\outputs\\phase6_streaming\\cluster_predictions"
+}

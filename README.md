@@ -19,7 +19,8 @@ BigData/
 │   ├── phase5_feature_reduction.py
 │   ├── phase5_model_selection.py
 │   ├── phase6_kafka_producer.py
-│   └── phase6_streaming_consumer.py
+│   ├── phase6_streaming_consumer.py
+│   └── phase6_streaming_inference.py
 ├── docker-compose.yml
 ├── outputs/
 │   └── eda/                 # créé par le script
@@ -256,15 +257,19 @@ docker exec smart-home-kafka /opt/kafka/bin/kafka-topics.sh `
 
 ## Phase 6 — Kafka : producteur
 
-Le producteur relit un échantillon des mesures nettoyées et envoie des messages JSON dans `smart-home-events` :
+Le producteur relit les mesures nettoyées sur une tranche de temps donnée et envoie des messages JSON dans `smart-home-events` par ordre chronologique :
 
 ```powershell
 .\.venv\Scripts\python.exe src\phase6_kafka_producer.py `
   --bootstrap-server "localhost:9092" `
   --topic "smart-home-events" `
-  --max-rows 1000 `
-  --delay-seconds 0.01
+  --start "2020-06-18 09:00:00" `
+  --end "2020-06-18 12:00:00" `
+  --max-rows 250000 `
+  --delay-seconds 0
 ```
+
+Il s'agit d'un rejeu contrôlé du dataset historique, et non de capteurs physiques temps réel. Les envois sont asynchrones (`acks=all`) et les acquittements en erreur sont comptés puis signalés.
 
 ## Phase 6 — Kafka : consommateur Spark Structured Streaming
 
@@ -286,6 +291,45 @@ Sorties :
 outputs/phase6_streaming/parsed_events/
 outputs/phase6_streaming/consumer_summary.json
 ```
+
+## Phase 6 — Kafka : inférence KMeans
+
+Le consommateur d'inférence regroupe chaque micro-batch Kafka par fenêtre de cinq minutes, reconstruit les 47 variables du modèle final (8 capteurs × 5 statistiques + 7 variables de contexte) et prédit le cluster :
+
+```powershell
+.\.venv\Scripts\python.exe src\phase6_streaming_inference.py `
+  --bootstrap-server "localhost:9092" `
+  --topic "smart-home-events" `
+  --timeout-seconds 900 `
+  --max-offsets-per-trigger 70000
+```
+
+La query s'arrête dès qu'un micro-batch vide confirme que le topic est épuisé. Le checkpoint et le répertoire de prédictions sont supprimés à chaque exécution pour rejouer le flux depuis le début.
+
+Les capteurs absents d'une fenêtre restent nuls et sont imputés par le modèle de preprocessing, exactement comme lors de l'entraînement. C'est indispensable : les variables de contexte `active_sensor_count` et `total_sample_count` n'ont de sens que si le flux contient tous les capteurs.
+
+## Phase 6 — Kafka : résultats
+
+Le topic `smart-home-events` a été alimenté par trois rejeux du 18 et du 29 juin 2020, deux journées de profils opposés :
+
+```text
+2020-06-17 21:00 → 2020-06-17 23:59   209 736 messages (nuit)
+2020-06-18 09:00 → 2020-06-18 11:59   211 084 messages (journée dense, 23 capteurs)
+2020-06-29 07:00 → 2020-06-29 09:29    63 272 messages (journée creuse, 9 capteurs)
+```
+
+L'inférence donne :
+
+- **484 092** messages consommés en **7** micro-batchs
+- **108** fenêtres prédites, dont **102** distinctes
+- cluster 0 : **78** fenêtres (72,2 %) ; cluster 1 : **30** fenêtres (27,8 %)
+
+Les journées denses et les journées creuses ne se rattachent pas au même cluster, ce qui confirme que la séparation apprise porte d'abord sur la densité des mesures et non sur une activité humaine identifiée.
+
+Deux points de vigilance documentés dans le rapport :
+
+- une fenêtre à cheval sur deux micro-batchs est prédite deux fois (108 prédictions pour 102 fenêtres) ; un déploiement réel utiliserait une agrégation avec état et marque temporelle ;
+- les horodatages sont rendus par Spark SQL en UTC : passer par un `datetime` Python introduirait un décalage de fuseau et décalerait toutes les fenêtres.
 
 ## Principaux résultats
 

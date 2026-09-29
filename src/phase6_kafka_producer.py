@@ -38,6 +38,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--input-dir", type=Path, default=DEFAULT_INPUT_DIR)
     parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
+    parser.add_argument(
+        "--start",
+        default=None,
+        help="Début de la tranche rejouée, format 'yyyy-MM-dd HH:mm:ss'.",
+    )
+    parser.add_argument(
+        "--end",
+        default=None,
+        help="Fin de la tranche rejouée, format 'yyyy-MM-dd HH:mm:ss'.",
+    )
     parser.add_argument("--bootstrap-server", default="localhost:9092")
     parser.add_argument("--topic", default="smart-home-events")
     parser.add_argument("--max-rows", type=int, default=1000)
@@ -63,6 +73,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("--max-rows doit être supérieur à 0.")
     if args.delay_seconds < 0:
         parser.error("--delay-seconds doit être positif.")
+    if args.start and args.end and args.start > args.end:
+        parser.error("--start doit précéder --end.")
     return args
 
 
@@ -91,11 +103,16 @@ def create_spark(args: argparse.Namespace) -> SparkSession:
 
 
 def event_payload(row: Any) -> dict[str, Any]:
-    timestamp = row["timestamp"]
+    """Construit le message JSON.
+
+    `timestamp` est déjà une chaîne produite par Spark SQL dans le fuseau de la
+    session (UTC) : l'utiliser directement évite le décalage de fuseau qu'un
+    passage par un `datetime` Python introduirait.
+    """
     return {
         "value_id": int(row["value_id"]),
         "sensor_id": int(row["sensor_id"]),
-        "timestamp": timestamp.isoformat(sep=" ") if timestamp is not None else None,
+        "timestamp": row["timestamp_text"],
         "value": float(row["value"]) if row["value"] is not None else None,
         "sensor_name": row["name"],
         "room": row["room"],
@@ -107,6 +124,8 @@ def write_summary(
     report_dir: Path,
     args: argparse.Namespace,
     sent: int,
+    first_timestamp: str | None,
+    last_timestamp: str | None,
     started_at: float,
 ) -> None:
     report_dir.mkdir(parents=True, exist_ok=True)
@@ -119,6 +138,10 @@ def write_summary(
         "topic": args.topic,
         "requested_rows": args.max_rows,
         "sent_rows": sent,
+        "requested_start": args.start,
+        "requested_end": args.end,
+        "first_event_timestamp": first_timestamp,
+        "last_event_timestamp": last_timestamp,
         "delay_seconds": args.delay_seconds,
         "payload_format": "JSON",
     }
@@ -139,18 +162,32 @@ def run(args: argparse.Namespace) -> None:
     data: DataFrame | None = None
     try:
         log(f"Lecture d'un maximum de {args.max_rows} mesures depuis {input_dir}.")
+        measurements = (
+            spark.read.parquet(str(input_dir)).filter(~F.col("is_suspect_value"))
+        )
+        if args.start:
+            measurements = measurements.filter(
+                F.col("timestamp") >= F.lit(args.start).cast("timestamp")
+            )
+        if args.end:
+            measurements = measurements.filter(
+                F.col("timestamp") < F.lit(args.end).cast("timestamp")
+            )
         data = (
-            spark.read.parquet(str(input_dir))
-            .filter(~F.col("is_suspect_value"))
-            .select(
+            measurements.select(
                 "value_id",
                 "sensor_id",
                 "timestamp",
+                # Horodatage rendu en UTC par Spark, sans detour par Python.
+                F.date_format("timestamp", "yyyy-MM-dd HH:mm:ss.SSSSSS").alias(
+                    "timestamp_text"
+                ),
                 "value",
                 "name",
                 "room",
                 "measurement",
             )
+            .orderBy("timestamp")
             .limit(args.max_rows)
         )
 
@@ -158,26 +195,51 @@ def run(args: argparse.Namespace) -> None:
             bootstrap_servers=args.bootstrap_server.split(","),
             acks="all",
             retries=3,
-            linger_ms=5,
+            linger_ms=20,
             value_serializer=lambda payload: json.dumps(payload).encode("utf-8"),
         )
         sent = 0
+        failures: list[Exception] = []
+        first_timestamp: str | None = None
+        last_timestamp: str | None = None
+
+        def on_error(exception: Exception) -> None:
+            failures.append(exception)
+
         try:
             for row in data.toLocalIterator():
                 payload = event_payload(row)
-                future = producer.send(args.topic, value=payload)
-                future.get(timeout=30)
+                # Envoi asynchrone : le productivite reste elevee, les
+                # echecs d'acquittement sont comptes puis verifies.
+                producer.send(args.topic, value=payload).add_errback(on_error)
                 sent += 1
-                if sent % 100 == 0:
+                if first_timestamp is None:
+                    first_timestamp = payload["timestamp"]
+                last_timestamp = payload["timestamp"]
+                if sent % 10000 == 0:
                     log(f"{sent} messages envoyés")
                 if args.delay_seconds:
                     time.sleep(args.delay_seconds)
+            producer.flush(timeout=120)
         finally:
-            producer.flush(timeout=30)
-            producer.close(timeout=10)
+            producer.flush(timeout=60)
+            producer.close(timeout=30)
 
-        write_summary(args.report_dir, args, sent, started_at)
+        if failures:
+            raise RuntimeError(
+                f"{len(failures)} envois ont échoué, premier exemple : {failures[0]}"
+            )
+
+        write_summary(
+            args.report_dir,
+            args,
+            sent,
+            first_timestamp,
+            last_timestamp,
+            started_at,
+        )
         log(f"Messages envoyés : {sent}")
+        log(f"Planche rejouée : {first_timestamp} -> {last_timestamp}")
         log(f"Résumé : {args.report_dir / 'producer_summary.json'}")
     finally:
         if data is not None:
