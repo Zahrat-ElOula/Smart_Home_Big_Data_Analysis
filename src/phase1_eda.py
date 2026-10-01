@@ -31,7 +31,7 @@ from pyspark.sql import DataFrame, Row, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
 
-
+# Le répertoire racine du projet est le parent du répertoire contenant ce fichier.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA_DIR = PROJECT_ROOT / "human_activity_raw_sensor_data"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "outputs" / "eda"
@@ -46,7 +46,7 @@ EXPECTED_HEADERS = {
     "sensor_sample_float.csv": ["value_id", "sensor_id", "timestamp", "value"],
 }
 MAX_REPORT_SENSORS = 10_000
-
+# Les fichiers CSV de sortie sont limités à 10 000 lignes pour éviter des fichiers trop volumineux.
 SENSOR_SCHEMA = T.StructType(
     [
         T.StructField("sensor_id", T.LongType(), True),
@@ -55,7 +55,7 @@ SENSOR_SCHEMA = T.StructType(
         T.StructField("name", T.StringType(), True),
     ]
 )
-
+# Le schéma des fichiers de mesures est identique pour les deux fichiers CSV d'échantillons.
 SAMPLE_SCHEMA = T.StructType(
     [
         T.StructField("value_id", T.LongType(), True),
@@ -77,10 +77,10 @@ DAY_NAMES = {
 }
 
 
-def log(message: str) -> None:
+def log(message: str) -> None: 
     print(f"[EDA] {message}", flush=True)
 
-
+# Parse les arguments de la ligne de commande et effectue des vérifications simples.
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Ingestion et analyse exploratoire du dataset Smart Home avec PySpark.",
@@ -136,7 +136,7 @@ def parse_args() -> argparse.Namespace:
         )
     return args
 
-
+# Vérifie la présence des fichiers de données requis.
 def check_data_files(data_dir: Path) -> dict[str, Path]:
     data_dir = data_dir.expanduser().resolve()
     missing = [name for name in EXPECTED_FILES if not (data_dir / name).is_file()]
@@ -146,7 +146,7 @@ def check_data_files(data_dir: Path) -> dict[str, Path]:
         )
     return {name: data_dir / name for name in EXPECTED_FILES}
 
-
+# Construit un inventaire JSON et CSV des fichiers CSV du dataset.
 def build_inventory(files: dict[str, Path], output_dir: Path) -> list[dict[str, Any]]:
     inventory: list[dict[str, Any]] = []
     for filename, path in files.items():
@@ -183,7 +183,7 @@ def build_inventory(files: dict[str, Path], output_dir: Path) -> list[dict[str, 
     )
     return inventory
 
-
+# Vérifie la présence d'un JDK 17+ sur le poste Windows et le configure automatiquement.
 def ensure_java_home(log_prefix: str = "EDA") -> Path:
     """Configure automatiquement un JDK 17+ déjà présent sur le poste Windows."""
     configured = os.environ.get("JAVA_HOME")
@@ -233,7 +233,7 @@ def ensure_java_home(log_prefix: str = "EDA") -> Path:
         "configure JAVA_HOME avant de relancer le script."
     )
 
-
+# Crée une session Spark avec des paramètres adaptés à l'EDA.
 def create_spark(args: argparse.Namespace, output_dir: Path) -> SparkSession:
     ensure_java_home()
     # Évite que le nom Windows contenant « _ » soit utilisé comme URL RPC Spark.
@@ -267,7 +267,7 @@ def create_spark(args: argparse.Namespace, output_dir: Path) -> SparkSession:
     spark.sparkContext.setLogLevel(args.log_level)
     return spark
 
-
+# Lit un fichier CSV avec un schéma Spark explicite et des options adaptées.
 def read_csv(
     spark: SparkSession,
     path: Path,
@@ -289,12 +289,12 @@ def read_csv(
         reader = reader.option("timestampFormat", timestamp_format)
     return reader.csv(str(path))
 
-
+# Définit une condition pour filtrer les valeurs finies (non-NaN, non-infini).
 def finite_value_condition() -> Any:
     value = F.col("value")
     return value.isNotNull() & ~F.isnan(value) & (F.abs(value) != F.lit(float("inf")))
 
-
+# Prépare les métadonnées des capteurs à partir du fichier sensor.csv.
 def prepare_sensor_metadata(raw: DataFrame, output_dir: Path) -> tuple[DataFrame, dict[str, int]]:
     cleaned = (
         raw.withColumn("sensor_id", F.col("sensor_id").cast("long"))
@@ -343,7 +343,7 @@ def prepare_sensor_metadata(raw: DataFrame, output_dir: Path) -> tuple[DataFrame
     save_dataframe_csv(cleaned.orderBy("sensor_id"), output_dir / "tables" / "sensor_metadata.csv")
     return cleaned, metadata
 
-
+# Lit les fichiers CSV d'échantillons et les combine en un seul DataFrame.
 def load_samples(
     spark: SparkSession,
     files: dict[str, Path],
@@ -367,7 +367,7 @@ def load_samples(
         )
     )
 
-
+# Résume les statistiques par fichier source et les écrit dans un CSV.
 def summarize_by_file(samples: DataFrame, output_dir: Path) -> list[dict[str, Any]]:
     finite = finite_value_condition()
     finite_stat_value = F.when(finite, F.col("value"))
@@ -447,7 +447,7 @@ def summarize_by_file(samples: DataFrame, output_dir: Path) -> list[dict[str, An
         )
     return rows
 
-
+# Construit un résumé global de la qualité des données et écrit un fichier JSON.
 def build_overall_quality(
     file_rows: Sequence[dict[str, Any]],
     sensor_summary: DataFrame,
@@ -551,7 +551,7 @@ def build_overall_quality(
         json.dump(to_jsonable(overall), handle, ensure_ascii=False, indent=2)
     return overall, orphan_rows, missing_sensor_rows
 
-
+# Résume les statistiques par capteur et les écrit dans un CSV.
 def summarize_sensors(
     samples: DataFrame,
     sensor_metadata: DataFrame,
@@ -703,7 +703,7 @@ def summarize_sensors(
         )
     return enriched, rows
 
-
+# Effectue un échantillonnage aléatoire sans remise et écrit l'échantillon dans un fichier Parquet.
 def make_sample(
     samples: DataFrame,
     args: argparse.Namespace,
@@ -727,7 +727,7 @@ def make_sample(
         log(f"Échantillon sauvegardé dans {sample_dir}.")
     return sampled, sample_count
 
-
+# Calcule les quantiles approximatifs pour chaque capteur et écrit un CSV.
 def calculate_quantiles(
     sampled: DataFrame,
     sensor_metadata: DataFrame,
