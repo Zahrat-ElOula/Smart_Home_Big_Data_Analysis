@@ -1,6 +1,6 @@
 # Mini-projet Big Data 2 — Smart Home multi-capteurs
 
-Rapport de synthèse des six phases, daté du 29 septembre 2026.
+Rapport de synthèse des six phases.
 
 ---
 
