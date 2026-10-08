@@ -1,4 +1,4 @@
-# Smart Home Big Data Analysis – Final Report
+# Smart Home Big Data Analysis
 
 <p align="center">
   <strong>Multi-Sensor Dataset Analysis using Apache Spark, Clustering, and Kafka Streaming</strong>
