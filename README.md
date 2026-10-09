@@ -454,7 +454,6 @@ BigData/
 
 ## References and Documentation
 
-- **[RAPPORT.md](RAPPORT.md)** – Full project report with detailed phase-by-phase interpretation
 - **Dataset Source:** Mendeley, *Multi-sensor dataset of human activities in a smart home environment*
 - **Framework Documentation:**
   - [Apache Spark](https://spark.apache.org/docs/latest/)
