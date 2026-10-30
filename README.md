@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/banner.svg" alt="Smart Home Big Data Analysis" width="100%">
+<img src="banner.svg" alt="Smart Home Big Data Analysis" width="100%">
 
 <br>
 
@@ -40,7 +40,7 @@
 ## 🧭 Pipeline overview
 
 <div align="center">
-  <img src="assets/pipeline.svg" alt="Pipeline: ingestion, cleaning, windows, clustering, reduction, streaming" width="100%">
+  <img src="pipeline.svg" alt="Pipeline: ingestion, cleaning, windows, clustering, reduction, streaming" width="100%">
 </div>
 
 <br>
