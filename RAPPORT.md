@@ -4,7 +4,7 @@
 
 **Summary report covering the six project phases**
 
-*September 29, 2026*
+
 
 ![Measurements](https://img.shields.io/badge/measurements-247.3M-blue)
 ![Sensors](https://img.shields.io/badge/sensors-24-green)
