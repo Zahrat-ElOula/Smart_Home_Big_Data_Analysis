@@ -20,7 +20,7 @@
 
 > [!NOTE]
 > This README covers the **repository structure** and the **execution commands**.
-> The detailed interpretation of each phase is in [`REPORT.md`](REPORT.md).
+> The detailed interpretation of each phase is in [`REPORT.md`](RAPPORT.md).
 
 ---
 
